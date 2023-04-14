@@ -13,6 +13,8 @@
 // })
 
 // namespace
+
+import View from './view.js';
 const App = {
   $: {
     menu: document.querySelector('[data-id="menu"]'),
@@ -20,11 +22,13 @@ const App = {
     resetBtn: document.querySelector('[data-id="reset-btn"]'),
     newRoundBtn: document.querySelector('[data-id="new-round-btn"]'),
     squares: document.querySelectorAll('[data-id="square"]'),
-    turn: document.querySelector('[data-id="turn"]')
+    turn: document.querySelector('[data-id="turn"]'),
+    modal: document.querySelector('[data-id="modal"]'),
+    modalContents: document.querySelector('[data-id="modal-text"]'),
+    modalBtn: document.querySelector('[data-id="modal-btn"]')
   },
 
   state: {
-    // currentPlayer: 1,
     moves: []
   },
 
@@ -51,7 +55,6 @@ const App = {
       const p1Wins = pattern.every(v => p1Moves.includes(v));
       const p2Wins = pattern.every(v => p2Moves.includes(v));
 
-      // p1Wins ? 1 : p2Wins ? 2
       if(p1Wins) winner = 1
       if (p2Wins) winner = 2
     })
@@ -75,10 +78,16 @@ const App = {
 
     });
 
+    App.$.modalBtn.addEventListener('click', event => {
+      App.state.moves = [];
+      App.$.squares.forEach(square => square.replaceChildren());
+
+      App.$.modal.classList.add('hidden');
+    });
+
     App.$.squares.forEach(square => {
       square.addEventListener('click', event => {
         console.log(`Current player is ${App.state.currentPlayer}`);
-        // const turn = document.querySelector('[data-id="turn"]');
 
         const hasMove = (squareId) => {
           const existingMove = App.state.moves.find(
@@ -94,42 +103,47 @@ const App = {
         const lastMove = App.state.moves.at(-1);
         const getOppositePlayer = (playerId) => (playerId === 1 ? 2 : 1);
         const currentPlayer = App.state.moves.length === 0 ? 1 : getOppositePlayer(lastMove.playerId);
+        const nextPlayer = getOppositePlayer(currentPlayer);
 
-        const icon = document.createElement('i');
-        // const paragraph = document.createElement('p');
-        // const currentPlayer = App.state.currentPlayer;
+        const squareIcon = document.createElement('i');
+        const turnIcon = document.createElement('i');
+        const turnLabel = document.createElement('p');
+        turnLabel.innerText = `Player ${nextPlayer}, your turn!`
 
         if (currentPlayer === 1) {
-          icon.classList.add('fa-solid', 'fa-x', 'turquoise');
-          // paragraph.innerText = 'Player 1, Your Turn!';
+          squareIcon.classList.add('fa-solid', 'fa-x', 'turquoise');
+          turnIcon.classList.add('fa-solid', 'fa-o', 'yellow');
+          turnLabel.classlist = 'yello';
         }
         else {
-          icon.classList.add('fa-solid', 'fa-o', 'yellow');
-          // paragraph.innerText = 'PLayer 2, Your Turn!';
+          squareIcon.classList.add('fa-solid', 'fa-o', 'yellow');
+          turnIcon.classList.add('fa-solid', 'fa-x', 'turquoise');
+          turnLabel.classList = 'turquoise';
         }
+        
+        App.$.turn.replaceChildren(turnIcon, turnLabel);
 
         App.state.moves.push({
           squareId: +square.id,
           playerId:  currentPlayer
         });
 
-        // App.state.currentPlayer = currentPlayer === 1 ? 2 : 1;
-
-        square.replaceChildren(icon);
-        // turn.replaceChildren(icon ,paragraph);
-
-        // <i class="fa-solid fa-x turquoise"></i>
-        // <p>Player 1, you're up!</p>
+        square.replaceChildren(squareIcon);
 
         const game = App.getGameStatus(App.state.moves);
         
         if (game.status === 'complete') {
+          App.$.modal.classList.remove('hidden');
+          
+          let message = '';
           if (game.winner) {
-            alert(`Player ${game.winner} wins!!!`);
+            message = `Player ${game.winner} wins!!!`;
           }
           else {
-            alert('Tie');
+            message = `Tie!!!`;
           }
+
+          App.$.modalContents.textContent = message;
         }
       });
     });
@@ -137,3 +151,7 @@ const App = {
 }
 
 window.addEventListener('load', () => App.init());
+
+function init() {
+  const view = new View(); 
+}
